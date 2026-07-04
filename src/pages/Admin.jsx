@@ -81,13 +81,22 @@ export default function Admin({ onBack }) {
     }
   }
 
-  // 处理照片上传
-  const handlePhotoUpload = (e) => {
+  // 处理照片上传 - 支持添加新照片和更新现有照片
+  const handlePhotoUpload = (e, index = null) => {
     const file = e.target.files[0]
     if (file) {
       const reader = new FileReader()
       reader.onloadend = () => {
-        setPhotos([...photos, { url: reader.result, type: 'print', rotation: Math.random() * 20 - 10 }])
+        const newPhoto = { url: reader.result, type: 'print', rotation: Math.random() * 20 - 10 }
+        if (index !== null) {
+          // 更新现有照片
+          const newPhotos = [...photos]
+          newPhotos[index] = newPhoto
+          setPhotos(newPhotos)
+        } else {
+          // 添加新照片
+          setPhotos([...photos, newPhoto])
+        }
       }
       reader.readAsDataURL(file)
     }
@@ -361,11 +370,14 @@ export default function Admin({ onBack }) {
                 {photos.map((photo, index) => (
                   <div key={index} className="relative">
                     {photo.url ? (
-                      <img src={photo.url} alt="" className="w-full h-16 object-cover rounded" />
+                      <label className="cursor-pointer block">
+                        <img src={photo.url} alt="" className="w-full h-16 object-cover rounded" />
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePhotoUpload(e, index)} />
+                      </label>
                     ) : (
                       <label className="w-full h-16 bg-slate-700 rounded flex items-center justify-center cursor-pointer">
                         <span className="text-slate-500 text-xs">上传</span>
-                        <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePhotoUpload(e, index)} />
                       </label>
                     )}
                     <button type="button" onClick={() => removePhoto(index)} className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 text-xs">×</button>
