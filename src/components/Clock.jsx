@@ -53,13 +53,13 @@ export default function Clock() {
       {times.map((tz) => (
         <div
           key={tz.name}
-          className="bg-slate-800/80 backdrop-blur-sm rounded-lg px-4 py-2 text-center border border-slate-700"
+          className="bg-white/[0.08] backdrop-blur-xl rounded-2xl px-5 py-3 text-center border border-white/[0.15] shadow-[0_8px_32px_rgba(0,0,0,0.3)]"
         >
-          <div className="text-sm text-slate-400 mb-1">
+          <div className="text-xs text-white/70 mb-1 font-medium">
             {tz.flag} {tz.name}
           </div>
-          <div className="text-2xl font-mono text-white font-bold">{tz.time}</div>
-          <div className="text-xs text-slate-500">{tz.date}</div>
+          <div className="text-2xl font-mono text-white font-semibold tracking-widest drop-shadow-sm">{tz.time}</div>
+          <div className="text-xs text-white/50 mt-1">{tz.date}</div>
         </div>
       ))}
     </div>
