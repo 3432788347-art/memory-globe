@@ -48,32 +48,27 @@ function MiniPlayer({ cassette, isPlaying, onPlay, onPause, onOpenFull }) {
     }
   }, [cassette, isEmbed])
 
-  // For embed, show the actual player
+  // For embed, show the actual player - larger size
   if (isEmbed) {
     return (
-      <div className="fixed bottom-8 left-8 z-40">
+      <div className="fixed bottom-4 left-4 z-40">
         <div className="bg-gradient-to-b from-slate-700 to-slate-900 rounded-lg p-2 shadow-lifted border-2 border-slate-600">
-          <div className="flex items-center gap-2">
-            {/* Mini embed player */}
+          <div className="flex flex-col gap-2">
+            {/* Title */}
+            <span className="text-archive-cream text-xs font-typewriter">
+              {cassette?.title || 'Music'}
+            </span>
+            {/* Larger embed player - 280px wide, 80px tall */}
             <div
               ref={embedContainerRef}
-              className="w-48 h-14 overflow-hidden rounded"
+              className="w-[280px] h-[80px] overflow-hidden rounded bg-slate-900"
             />
-            {/* Title and controls */}
-            <div className="flex flex-col">
-              <span className="text-archive-cream text-xs font-typewriter truncate max-w-[80px]">
-                {cassette?.title || 'Music'}
-              </span>
-              <span className="text-archive-yellow text-[10px] font-typewriter">
-                {isPlaying ? '▶ Playing' : '○ Ready'}
-              </span>
-            </div>
-            {/* Open full player */}
+            {/* Open full player button */}
             <button
               onClick={onOpenFull}
-              className="text-archive-cream/60 hover:text-archive-cream text-xl"
+              className="text-archive-cream/60 hover:text-archive-cream text-xs font-typewriter text-center"
             >
-              ☰
+              ☰ Open Full Player
             </button>
           </div>
         </div>

@@ -2,7 +2,6 @@ import { useLocation, useNavigate } from 'react-router-dom'
 
 const NAV_TABS = [
   { key: 'tape', label: 'TAPE', icon: '◉', path: null }, // Special - opens boombox
-  { key: 'archive', label: 'ARCHIVE', icon: '▤', path: '/' },
   { key: 'diary', label: 'DIARY', icon: '✎', path: '/diary' },
 ]
 
@@ -12,8 +11,8 @@ export default function Hero({ activeTab, onTabChange }) {
 
   const isActive = (tab) => {
     if (tab.path === null) {
-      // TAPE is active when on home page
-      return location.pathname === '/'
+      // TAPE is active when on home page (default state)
+      return location.pathname === '/' && activeTab === 'tape'
     }
     return location.pathname === tab.path
   }
