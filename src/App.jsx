@@ -30,37 +30,31 @@ const isEmbedCode = (cassette) => {
 // Simple mini player component
 function MiniPlayer({ cassette, isPlaying, onPlay, onPause, onOpenFull }) {
   const isEmbed = isEmbedCode(cassette)
-  const embedRef = useRef(null)
 
-  // Handle embed autoplay when isPlaying changes
-  useEffect(() => {
-    if (!isEmbed || !embedRef.current) return
-
-    const iframe = embedRef.current.querySelector('iframe')
-    if (!iframe) return
-
-    if (isPlaying) {
-      const src = iframe.src || iframe.getAttribute('src')
-      if (src && !src.includes('autoplay')) {
-        const separator = src.includes('?') ? '&' : '?'
-        iframe.src = src + separator + 'autoplay=1'
-      }
-    }
-  }, [isPlaying, isEmbed])
-
+  // For embed codes, just show the button that toggles play state
+  // The actual embed is rendered in the full Boombox
   return (
     <div className="fixed bottom-8 left-8 z-40">
       <div className="bg-gradient-to-b from-slate-700 to-slate-900 rounded-lg p-3 shadow-lifted border-2 border-slate-600">
         <div className="flex gap-3 items-center">
-          {/* Speakers with animation */}
-          <div className="flex gap-2">
-            <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center border-2 border-slate-600">
-              <div className={`w-6 h-6 rounded-full bg-slate-900 border border-slate-500 ${isPlaying ? 'animate-pulse' : ''}`} />
+          {/* Speakers with animation - hide for embed, show for audio */}
+          {!isEmbed && (
+            <div className="flex gap-2">
+              <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center border-2 border-slate-600">
+                <div className={`w-6 h-6 rounded-full bg-slate-900 border border-slate-500 ${isPlaying ? 'animate-pulse' : ''}`} />
+              </div>
+              <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center border-2 border-slate-600">
+                <div className={`w-6 h-6 rounded-full bg-slate-900 border border-slate-500 ${isPlaying ? 'animate-pulse' : ''}`} />
+              </div>
             </div>
+          )}
+
+          {/* For embed, show music icon */}
+          {isEmbed && (
             <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center border-2 border-slate-600">
-              <div className={`w-6 h-6 rounded-full bg-slate-900 border border-slate-500 ${isPlaying ? 'animate-pulse' : ''}`} />
+              <span className="text-2xl">{isPlaying ? '🎵' : '🎶'}</span>
             </div>
-          </div>
+          )}
 
           {/* Track info */}
           <div className="flex flex-col">
