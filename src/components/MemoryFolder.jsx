@@ -4,21 +4,29 @@ import Draggable from 'react-draggable'
 // Draggable item component for the folder board
 function DraggableItem({ item, onSelect, zIndex, onBringToFront }) {
   const nodeRef = useRef(null)
+  const [isDragging, setIsDragging] = useState(false)
   const rotation = item.rotation || (Math.random() * 6 - 3)
 
   const handleDragStart = () => {
+    setIsDragging(true)
     onBringToFront()
   }
 
+  const handleDragStop = () => {
+    setIsDragging(false)
+  }
+
   const handleClick = () => {
-    onSelect(item)
+    if (!isDragging) {
+      onSelect(item)
+    }
   }
 
   const baseStyle = {
     position: 'absolute',
     transform: `rotate(${rotation}deg)`,
-    cursor: 'grab',
-    transition: 'box-shadow 0.2s ease',
+    cursor: isDragging ? 'grabbing' : 'grab',
+    transition: isDragging ? 'none' : 'box-shadow 0.2s ease',
     zIndex,
   }
 
@@ -28,9 +36,10 @@ function DraggableItem({ item, onSelect, zIndex, onBringToFront }) {
         nodeRef={nodeRef}
         handle=".drag-handle"
         onStart={handleDragStart}
+        onStop={handleDragStop}
         bounds="parent"
       >
-        <div ref={nodeRef} style={baseStyle} className="group">
+        <div ref={nodeRef} style={baseStyle}>
           <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-16 h-5 bg-gray-400/40 backdrop-blur-sm rotate-[-2deg] z-10" />
           <div className="polaroid drag-handle" onClick={handleClick}>
             <img src={item.url} alt="" className="w-40 h-32 object-cover" />
@@ -49,9 +58,10 @@ function DraggableItem({ item, onSelect, zIndex, onBringToFront }) {
         nodeRef={nodeRef}
         handle=".drag-handle"
         onStart={handleDragStart}
+        onStop={handleDragStop}
         bounds="parent"
       >
-        <div ref={nodeRef} style={baseStyle} className="group">
+        <div ref={nodeRef} style={baseStyle}>
           <div
             className="sticky-note drag-handle w-40"
             style={{ backgroundColor: item.color || '#fef3c7' }}
@@ -70,9 +80,10 @@ function DraggableItem({ item, onSelect, zIndex, onBringToFront }) {
         nodeRef={nodeRef}
         handle=".drag-handle"
         onStart={handleDragStart}
+        onStop={handleDragStop}
         bounds="parent"
       >
-        <div ref={nodeRef} style={baseStyle} className="group">
+        <div ref={nodeRef} style={baseStyle}>
           <div className="bg-gradient-to-b from-slate-700 to-slate-800 rounded-lg p-2 shadow-card drag-handle" onClick={handleClick}>
             <div className="w-28 h-16 bg-slate-900 rounded flex items-center justify-center">
               {item.cover ? (
