@@ -1,23 +1,46 @@
 import { useState, useRef, useEffect } from 'react'
 import Draggable from 'react-draggable'
 
-// Draggable item component for the folder board
+// Draggable item component - 长按拖动，单击放大
 function DraggableItem({ item, onSelect, zIndex, onBringToFront }) {
   const nodeRef = useRef(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [isLongPress, setIsLongPress] = useState(false)
+  const longPressTimer = useRef(null)
   const rotation = item.rotation || (Math.random() * 6 - 3)
+
+  const handleMouseDown = () => {
+    // 长按 300ms 后开始拖动
+    longPressTimer.current = setTimeout(() => {
+      setIsLongPress(true)
+    }, 300)
+  }
+
+  const handleMouseUp = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current)
+    }
+    // 如果没有进入拖动状态，则视为单击
+    if (!isLongPress) {
+      onSelect(item)
+    }
+    setIsLongPress(false)
+  }
 
   const handleDragStart = () => {
     setIsDragging(true)
     onBringToFront()
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current)
+    }
   }
 
-  const handleDragStop = () => {
+  const handleDragStop = (e, data) => {
     setIsDragging(false)
-  }
-
-  const handleClick = () => {
-    if (!isDragging) {
+    setIsLongPress(false)
+    // 检查是否真的移动了（而不是点击）
+    if (Math.abs(data.x) < 5 && Math.abs(data.y) < 5) {
+      // 移动距离太小，视为单击
       onSelect(item)
     }
   }
@@ -25,7 +48,7 @@ function DraggableItem({ item, onSelect, zIndex, onBringToFront }) {
   const baseStyle = {
     position: 'absolute',
     transform: `rotate(${rotation}deg)`,
-    cursor: isDragging ? 'grabbing' : 'grab',
+    cursor: isDragging ? 'grabbing' : 'pointer',
     transition: isDragging ? 'none' : 'box-shadow 0.2s ease',
     zIndex,
   }
@@ -34,17 +57,22 @@ function DraggableItem({ item, onSelect, zIndex, onBringToFront }) {
     return (
       <Draggable
         nodeRef={nodeRef}
-        handle=".drag-handle"
         onStart={handleDragStart}
         onStop={handleDragStop}
-        bounds="parent"
       >
-        <div ref={nodeRef} style={baseStyle}>
-          <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-16 h-5 bg-gray-400/40 backdrop-blur-sm rotate-[-2deg] z-10" />
-          <div className="polaroid drag-handle" onClick={handleClick}>
-            <img src={item.url} alt="" className="w-40 h-32 object-cover" />
+        <div
+          ref={nodeRef}
+          style={baseStyle}
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onTouchStart={handleMouseDown}
+          onTouchEnd={handleMouseUp}
+        >
+          <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-16 h-5 bg-gray-400/40 backdrop-blur-sm rotate-[-2deg] z-10 pointer-events-none" />
+          <div className="polaroid">
+            <img src={item.url} alt="" className="w-40 h-32 object-cover pointer-events-none" />
             {item.caption && (
-              <p className="font-handwritten text-gray-600 text-sm mt-3 text-center">{item.caption}</p>
+              <p className="font-handwritten text-gray-600 text-sm mt-3 text-center pointer-events-none">{item.caption}</p>
             )}
           </div>
         </div>
@@ -56,16 +84,20 @@ function DraggableItem({ item, onSelect, zIndex, onBringToFront }) {
     return (
       <Draggable
         nodeRef={nodeRef}
-        handle=".drag-handle"
         onStart={handleDragStart}
         onStop={handleDragStop}
-        bounds="parent"
       >
-        <div ref={nodeRef} style={baseStyle}>
+        <div
+          ref={nodeRef}
+          style={baseStyle}
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onTouchStart={handleMouseDown}
+          onTouchEnd={handleMouseUp}
+        >
           <div
-            className="sticky-note drag-handle w-40"
+            className="sticky-note w-40"
             style={{ backgroundColor: item.color || '#fef3c7' }}
-            onClick={handleClick}
           >
             <p className="font-handwritten text-gray-800 text-base leading-relaxed">{item.text}</p>
           </div>
@@ -78,21 +110,26 @@ function DraggableItem({ item, onSelect, zIndex, onBringToFront }) {
     return (
       <Draggable
         nodeRef={nodeRef}
-        handle=".drag-handle"
         onStart={handleDragStart}
         onStop={handleDragStop}
-        bounds="parent"
       >
-        <div ref={nodeRef} style={baseStyle}>
-          <div className="bg-gradient-to-b from-slate-700 to-slate-800 rounded-lg p-2 shadow-card drag-handle" onClick={handleClick}>
+        <div
+          ref={nodeRef}
+          style={baseStyle}
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onTouchStart={handleMouseDown}
+          onTouchEnd={handleMouseUp}
+        >
+          <div className="bg-gradient-to-b from-slate-700 to-slate-800 rounded-lg p-2 shadow-card">
             <div className="w-28 h-16 bg-slate-900 rounded flex items-center justify-center">
               {item.cover ? (
-                <img src={item.cover} alt="" className="w-full h-full object-cover rounded" />
+                <img src={item.cover} alt="" className="w-full h-full object-cover rounded pointer-events-none" />
               ) : (
                 <span className="text-slate-500 text-xs">TAPE</span>
               )}
             </div>
-            <p className="text-white text-xs text-center mt-1 truncate">{item.title}</p>
+            <p className="text-white text-xs text-center mt-1 truncate pointer-events-none">{item.title}</p>
           </div>
         </div>
       </Draggable>
