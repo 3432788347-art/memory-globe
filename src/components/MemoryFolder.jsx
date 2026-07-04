@@ -5,14 +5,15 @@ import Draggable from 'react-draggable'
 function DraggableItem({ item, onSelect, zIndex, onBringToFront }) {
   const nodeRef = useRef(null)
   const [isDragging, setIsDragging] = useState(false)
-  const [isLongPress, setIsLongPress] = useState(false)
   const longPressTimer = useRef(null)
+  const hasMoved = useRef(false)
   const rotation = item.rotation || (Math.random() * 6 - 3)
 
   const handleMouseDown = () => {
+    hasMoved.current = false
     // 长按 300ms 后开始拖动
     longPressTimer.current = setTimeout(() => {
-      setIsLongPress(true)
+      // 长按触发拖动，不做其他操作
     }, 300)
   }
 
@@ -20,11 +21,10 @@ function DraggableItem({ item, onSelect, zIndex, onBringToFront }) {
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current)
     }
-    // 如果没有进入拖动状态，则视为单击
-    if (!isLongPress) {
+    // 如果没有拖动，则视为单击
+    if (!hasMoved.current) {
       onSelect(item)
     }
-    setIsLongPress(false)
   }
 
   const handleDragStart = () => {
@@ -37,11 +37,9 @@ function DraggableItem({ item, onSelect, zIndex, onBringToFront }) {
 
   const handleDragStop = (e, data) => {
     setIsDragging(false)
-    setIsLongPress(false)
-    // 检查是否真的移动了（而不是点击）
-    if (Math.abs(data.x) < 5 && Math.abs(data.y) < 5) {
-      // 移动距离太小，视为单击
-      onSelect(item)
+    // 记录是否发生了移动
+    if (Math.abs(data.x) > 5 || Math.abs(data.y) > 5) {
+      hasMoved.current = true
     }
   }
 
