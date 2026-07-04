@@ -33,6 +33,38 @@ export default function Admin({ onBack }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newLocations))
   }
 
+  // 导出数据
+  const handleExport = () => {
+    const data = localStorage.getItem(STORAGE_KEY)
+    if (data) {
+      const blob = new Blob([data], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'memory-globe-data.json'
+      a.click()
+      URL.revokeObjectURL(url)
+    }
+  }
+
+  // 导入数据
+  const handleImport = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        try {
+          const data = JSON.parse(event.target.result)
+          saveLocations(data)
+          alert('导入成功！')
+        } catch (err) {
+          alert('导入失败，文件格式错误')
+        }
+      }
+      reader.readAsText(file)
+    }
+  }
+
   const handleLogin = (e) => {
     e.preventDefault()
     if (password === ADMIN_PASSWORD) {
@@ -239,6 +271,13 @@ export default function Admin({ onBack }) {
             <button onClick={() => { resetForm(); setIsFormOpen(true) }} className="bg-purple-600 px-4 py-2 rounded-lg text-white font-bold">
               添加地点
             </button>
+            <button onClick={handleExport} className="bg-green-600 px-4 py-2 rounded-lg text-white">
+              导出数据
+            </button>
+            <label className="bg-blue-600 px-4 py-2 rounded-lg text-white cursor-pointer">
+              导入数据
+              <input type="file" accept=".json" className="hidden" onChange={handleImport} />
+            </label>
             <button onClick={onBack} className="bg-slate-700 px-4 py-2 rounded-lg text-white">
               返回
             </button>
