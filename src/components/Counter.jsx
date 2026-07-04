@@ -20,8 +20,8 @@ export default function Counter() {
 
   return (
     <div className="text-center py-4">
-      <div className="inline-block bg-gradient-to-r from-pink-500 to-purple-600 rounded-full px-6 py-2 text-white font-bold shadow-lg">
-        他在杜克的第 <span className="text-2xl">{days}</span> 天
+      <div className="inline-block bg-white/[0.08] backdrop-blur-xl rounded-full px-6 py-2 text-white font-bold shadow-[0_8px_32px_rgba(0,0,0,0.3)] border border-white/[0.15]">
+        他在杜克的第 <span className="text-2xl text-white">{days}</span> 天
       </div>
     </div>
   )
