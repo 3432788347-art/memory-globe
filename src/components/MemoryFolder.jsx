@@ -220,8 +220,8 @@ export default function MemoryFolder({ location, onClose, isOpen, onToggleOpen, 
 
                       {/* Draggable notes board */}
                       <div
-                        className="relative h-64 bg-gradient-to-br from-white/[0.1] to-white/[0.05] rounded border border-white/[0.15] overflow-hidden backdrop-blur-sm"
-                        style={{ minHeight: '250px' }}
+                        className="relative h-64 bg-gradient-to-br from-white/[0.1] to-white/[0.05] rounded border border-white/[0.15] backdrop-blur-sm"
+                        style={{ minHeight: '250px', overflow: 'visible' }}
                       >
                         {items.notesAndTapes.length === 0 ? (
                           <div className="absolute inset-0 flex items-center justify-center text-archive-cream/40">
@@ -247,8 +247,8 @@ export default function MemoryFolder({ location, onClose, isOpen, onToggleOpen, 
 
                       {/* Draggable photos board */}
                       <div
-                        className="relative h-64 bg-gradient-to-br from-white/[0.1] to-white/[0.05] rounded border border-white/[0.15] overflow-hidden backdrop-blur-sm"
-                        style={{ minHeight: '250px' }}
+                        className="relative h-64 bg-gradient-to-br from-white/[0.1] to-white/[0.05] rounded border border-white/[0.15] backdrop-blur-sm"
+                        style={{ minHeight: '250px', overflow: 'visible' }}
                       >
                         {items.photos.length === 0 ? (
                           <div className="absolute inset-0 flex items-center justify-center text-archive-cream/40">
