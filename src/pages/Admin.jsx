@@ -364,22 +364,24 @@ export default function Admin({ onBack }) {
             <div className="mb-4">
               <div className="flex justify-between items-center mb-2">
                 <label className="text-white text-sm">照片</label>
-                <button type="button" onClick={addPhoto} className="text-purple-400 text-sm">+ 添加照片</button>
+                <label className="text-purple-400 text-sm cursor-pointer">
+                  + 添加照片
+                  <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => {
+                    const files = Array.from(e.target.files)
+                    files.forEach(file => {
+                      const reader = new FileReader()
+                      reader.onloadend = () => {
+                        setPhotos([...photos, { url: reader.result, type: 'print', rotation: Math.random() * 20 - 10 }])
+                      }
+                      reader.readAsDataURL(file)
+                    })
+                  }} />
+                </label>
               </div>
               <div className="grid grid-cols-4 gap-2">
                 {photos.map((photo, index) => (
                   <div key={index} className="relative">
-                    {photo.url ? (
-                      <label className="cursor-pointer block">
-                        <img src={photo.url} alt="" className="w-full h-16 object-cover rounded" />
-                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePhotoUpload(e, index)} />
-                      </label>
-                    ) : (
-                      <label className="w-full h-16 bg-slate-700 rounded flex items-center justify-center cursor-pointer">
-                        <span className="text-slate-500 text-xs">上传</span>
-                        <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePhotoUpload(e, index)} />
-                      </label>
-                    )}
+                    <img src={photo.url} alt="" className="w-full h-16 object-cover rounded" />
                     <button type="button" onClick={() => removePhoto(index)} className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 text-xs">×</button>
                   </div>
                 ))}
