@@ -1,12 +1,4 @@
 import { useState, useEffect } from 'react'
-import Globe from './components/Globe'
-import Clock from './components/Clock'
-import Counter from './components/Counter'
-import StarField from './components/StarField'
-import CassetteSelector from './components/CassetteSelector'
-import CassettePlayer from './components/CassettePlayer'
-import MemoryFolder from './components/MemoryFolder'
-import Admin from './pages/Admin'
 
 const STORAGE_KEY = 'memory-globe-locations'
 
@@ -26,16 +18,27 @@ const DEFAULT_LOCATIONS = [
   },
 ]
 
+function Clock() {
+  const [time, setTime] = useState(new Date().toLocaleTimeString())
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTime(new Date().toLocaleTimeString())
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  return (
+    <div className="flex flex-wrap justify-center gap-4 py-4">
+      <div className="bg-white/[0.08] backdrop-blur-xl rounded-2xl px-5 py-3 text-center border border-white/[0.15] shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+        <div className="text-2xl font-mono text-white font-semibold">{time}</div>
+      </div>
+    </div>
+  )
+}
+
 function App() {
-  const [view, setView] = useState('home')
   const [locations, setLocations] = useState(DEFAULT_LOCATIONS)
-  const [selectedLocation, setSelectedLocation] = useState(null)
-  const [showCassetteSelector, setShowCassetteSelector] = useState(false)
-  const [selectedCassette, setSelectedCassette] = useState(null)
-  const [showCassettePlayer, setShowCassettePlayer] = useState(false)
-  const [isMinimized, setIsMinimized] = useState(false)
-  const [folderOpen, setFolderOpen] = useState(false)
-  const [autoRotate, setAutoRotate] = useState(true)
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
@@ -44,108 +47,17 @@ function App() {
     }
   }, [])
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const saved = localStorage.getItem(STORAGE_KEY)
-      if (saved) {
-        setLocations(JSON.parse(saved))
-      }
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [])
-
-  const handleLocationClick = (location) => {
-    setSelectedLocation(location)
-    setAutoRotate(false)
-    setShowCassetteSelector(true)
-    setShowCassettePlayer(false)
-    setIsMinimized(false)
-    setFolderOpen(false)
-  }
-
-  const handleCassetteSelect = (cassette) => {
-    setSelectedCassette(cassette)
-    setShowCassetteSelector(false)
-    setShowCassettePlayer(true)
-  }
-
-  const handleMinimize = () => {
-    setIsMinimized(true)
-  }
-
-  const handleCloseMemory = () => {
-    setSelectedLocation(null)
-    setShowCassetteSelector(false)
-    setShowCassettePlayer(false)
-    setIsMinimized(false)
-    setFolderOpen(false)
-    setAutoRotate(true)
-  }
-
-  if (view === 'admin') {
-    return <Admin onBack={() => setView('home')} />
-  }
-
   return (
-    <div className="min-h-screen relative">
-      <StarField />
-
-      <div className="relative z-10">
-        <header className="p-4 text-white">
-          <div className="flex justify-between items-center mb-2">
-            <h1 className="text-2xl font-bold text-center flex-1">回忆地球仪</h1>
-            <button
-              onClick={() => setView('admin')}
-              className="text-white/60 hover:text-white text-sm px-2 py-1"
-            >
-              管理
-            </button>
-          </div>
-          <Clock />
-        </header>
-
-        <Counter />
-
-        <main>
-          <div className="h-[50vh] md:h-[600px]">
-            <Globe
-              locations={locations}
-              onLocationClick={handleLocationClick}
-              autoRotate={autoRotate}
-            />
-          </div>
-        </main>
-
-        {/* Cassette Selector Modal */}
-        {showCassetteSelector && selectedLocation && (
-          <CassetteSelector
-            cassettes={selectedLocation.cassettes || []}
-            onSelect={handleCassetteSelect}
-            onClose={handleCloseMemory}
-          />
-        )}
-
-        {/* Cassette Player */}
-        {showCassettePlayer && selectedCassette && (
-          <div className="fixed bottom-8 right-8 z-40">
-            <CassettePlayer
-              cassette={selectedCassette}
-              onMinimize={handleMinimize}
-              isMinimized={isMinimized}
-            />
-          </div>
-        )}
-
-        {/* Memory Folder */}
-        {selectedLocation && !showCassetteSelector && (
-          <MemoryFolder
-            location={selectedLocation}
-            onClose={handleCloseMemory}
-            isOpen={folderOpen}
-            onToggleOpen={() => setFolderOpen(!folderOpen)}
-          />
-        )}
-      </div>
+    <div className="min-h-screen" style={{ background: 'radial-gradient(ellipse at center, #151d2e 0%, #0a0f1a 100%)' }}>
+      <header className="p-4 text-white">
+        <h1 className="text-2xl font-bold text-center">回忆地球仪</h1>
+        <Clock />
+      </header>
+      <main className="flex items-center justify-center">
+        <div className="text-white text-center">
+          <p>Loading 3D Globe...</p>
+        </div>
+      </main>
     </div>
   )
 }
