@@ -3,29 +3,73 @@ import { useState, useRef, useEffect } from 'react'
 export default function CassettePlayer({
   cassette,
   onMinimize,
-  isMinimized = false
+  isMinimized = false,
+  playlist = [],
+  currentIndex = 0,
+  onNext,
+  onPrev
 }) {
   const [isPlaying, setIsPlaying] = useState(false)
+  const [currentTime, setCurrentTime] = useState(0)
+  const [duration, setDuration] = useState(0)
   const audioRef = useRef(null)
 
   useEffect(() => {
     if (audioRef.current && cassette?.url) {
       audioRef.current.src = cassette.url
-      if (isPlaying) {
-        audioRef.current.play()
-      }
+      audioRef.current.load()
     }
-  }, [cassette, isPlaying])
+  }, [cassette])
+
+  useEffect(() => {
+    if (isPlaying && audioRef.current) {
+      audioRef.current.play().catch(e => console.log('Play error:', e))
+    }
+  }, [isPlaying, cassette])
 
   const togglePlay = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause()
-      } else {
-        audioRef.current.play()
-      }
-      setIsPlaying(!isPlaying)
+    if (!audioRef.current || !cassette?.url) return
+    if (isPlaying) {
+      audioRef.current.pause()
+    } else {
+      audioRef.current.play()
     }
+    setIsPlaying(!isPlaying)
+  }
+
+  const stop = () => {
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current.currentTime = 0
+    }
+    setIsPlaying(false)
+    setCurrentTime(0)
+  }
+
+  const handleTimeUpdate = () => {
+    if (audioRef.current) {
+      setCurrentTime(audioRef.current.currentTime)
+    }
+  }
+
+  const handleLoadedMetadata = () => {
+    if (audioRef.current) {
+      setDuration(audioRef.current.duration)
+    }
+  }
+
+  const handleEnded = () => {
+    if (onNext) {
+      onNext()
+    } else {
+      setIsPlaying(false)
+    }
+  }
+
+  const formatTime = (time) => {
+    const minutes = Math.floor(time / 60)
+    const seconds = Math.floor(time % 60)
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`
   }
 
   if (isMinimized) {
@@ -43,7 +87,12 @@ export default function CassettePlayer({
             {isPlaying ? '⏸' : '▶'}
           </button>
         </div>
-        <audio ref={audioRef} onEnded={() => setIsPlaying(false)} />
+        <audio
+          ref={audioRef}
+          onTimeUpdate={handleTimeUpdate}
+          onLoadedMetadata={handleLoadedMetadata}
+          onEnded={handleEnded}
+        />
       </div>
     )
   }
@@ -67,40 +116,63 @@ export default function CassettePlayer({
       </div>
 
       {/* Cover art */}
-      {cassette?.cover && (
+      {cassette?.cover ? (
         <div className="w-20 h-20 mx-auto mb-4 rounded-lg overflow-hidden shadow-lg">
           <img src={cassette.cover} alt={cassette.title} className={`w-full h-full object-cover ${isPlaying ? 'animate-spin' : ''}`} style={{ animationDuration: '6s' }} />
+        </div>
+      ) : (
+        <div className="w-20 h-20 mx-auto mb-4 rounded-lg bg-slate-600 flex items-center justify-center">
+          <span className="text-2xl">🎵</span>
         </div>
       )}
 
       {/* Song title */}
-      <p className="text-white text-center text-sm mb-4">{cassette?.title}</p>
+      <p className="text-white text-center text-sm mb-2">{cassette?.title || '未选择音乐'}</p>
+
+      {/* Progress bar */}
+      {duration > 0 && (
+        <div className="mb-3">
+          <div className="h-1 bg-slate-600 rounded-full overflow-hidden">
+            <div className="h-full bg-blue-500 transition-all" style={{ width: `${(currentTime / duration) * 100}%` }} />
+          </div>
+          <div className="flex justify-between text-xs text-slate-400 mt-1">
+            <span>{formatTime(currentTime)}</span>
+            <span>{formatTime(duration)}</span>
+          </div>
+        </div>
+      )}
 
       {/* Controls */}
       <div className="flex items-center justify-center gap-4">
-        <button className="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center text-white hover:bg-slate-500">
+        <button onClick={onPrev} className="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center text-white hover:bg-slate-500">
           ⏮
+        </button>
+        <button onClick={stop} className="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center text-white hover:bg-slate-500">
+          ⏹
         </button>
         <button
           onClick={togglePlay}
-          className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white hover:bg-blue-400"
+          disabled={!cassette?.url}
+          className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white hover:bg-blue-400 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isPlaying ? '⏸' : '▶'}
         </button>
-        <button className="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center text-white hover:bg-slate-500">
+        <button onClick={onNext} className="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center text-white hover:bg-slate-500">
           ⏭
         </button>
       </div>
 
       {/* Minimize button */}
-      <button
-        onClick={onMinimize}
-        className="mt-4 w-full py-2 bg-slate-600 text-white rounded text-sm hover:bg-slate-500"
-      >
+      <button onClick={onMinimize} className="mt-4 w-full py-2 bg-slate-600 text-white rounded text-sm hover:bg-slate-500">
         缩小到旁
       </button>
 
-      <audio ref={audioRef} onEnded={() => setIsPlaying(false)} />
+      <audio
+        ref={audioRef}
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={handleLoadedMetadata}
+        onEnded={handleEnded}
+      />
     </div>
   )
 }

@@ -1,107 +1,122 @@
-import { useRef, useState, useEffect } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { useRef } from 'react'
+import { Canvas, useFrame, useLoader } from '@react-three/fiber'
 import { OrbitControls, Sphere } from '@react-three/drei'
 import * as THREE from 'three'
 
+// Convert lat/lon to 3D vector on sphere surface
 function latLonToVector3(lat, lon, radius) {
   const phi = (90 - lat) * (Math.PI / 180)
   const theta = (lon + 180) * (Math.PI / 180)
   const x = -(radius * Math.sin(phi) * Math.cos(theta))
   const z = radius * Math.sin(phi) * Math.sin(theta)
   const y = radius * Math.cos(phi)
-  return [x, y, z]
+  return new THREE.Vector3(x, y, z)
 }
 
-function Earth({ autoRotate }) {
-  const earthRef = useRef()
-  const [texture, setTexture] = useState(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const loader = new THREE.TextureLoader()
-    // 使用 jsdelivr CDN 更稳定
-    loader.load(
-      'https://cdn.jsdelivr.net/npm/three-globe@example/img/earth-blue-marble.jpg',
-      (loadedTexture) => {
-        loadedTexture.colorSpace = THREE.SRGBColorSpace
-        setTexture(loadedTexture)
-        setLoading(false)
-      },
-      undefined,
-      () => {
-        // 如果 CDN 失败，使用备用方案
-        setLoading(false)
-      }
-    )
-  }, [])
+function Earth({ autoRotate, children }) {
+  const groupRef = useRef()
+  const texture = useLoader(THREE.TextureLoader, '/earth.jpg')
 
   useFrame(() => {
-    if (earthRef.current && autoRotate) {
-      earthRef.current.rotation.y += 0.0005
+    if (groupRef.current && autoRotate) {
+      groupRef.current.rotation.y += 0.0005
     }
   })
 
+  if (texture) {
+    texture.colorSpace = THREE.SRGBColorSpace
+  }
+
   return (
-    <group ref={earthRef}>
+    <group ref={groupRef}>
       <Sphere args={[1, 64, 64]}>
-        {loading ? (
-          <meshStandardMaterial
-            color="#b8c4ce"
-            metalness={0.2}
-            roughness={0.7}
-          />
-        ) : (
-          <meshStandardMaterial
-            map={texture}
-            color="#b8c4ce"
-            metalness={0.1}
-            roughness={0.8}
-          />
-        )}
+        <meshStandardMaterial map={texture} />
       </Sphere>
 
       {/* Atmosphere glow */}
       <Sphere args={[1.02, 64, 64]}>
         <meshBasicMaterial
-          color="#4a90d9"
+          color="#5dadec"
           transparent
           opacity={0.15}
           side={THREE.BackSide}
         />
       </Sphere>
+
+      {/* Markers are children - they rotate with the Earth */}
+      {children}
     </group>
   )
 }
 
+// Location marker with sci-fi beacon style
 function LocationMarker({ location, onClick }) {
   const markerRef = useRef()
-  const position = latLonToVector3(location.lat, location.lon, 1.05)
+  const ring1Ref = useRef()
+  const ring2Ref = useRef()
 
-  useFrame(() => {
-    if (markerRef.current) {
-      const scale = 1 + Math.sin(Date.now() * 0.003) * 0.3
-      markerRef.current.scale.setScalar(scale)
+  // Position marker on sphere surface
+  const position = latLonToVector3(location.lat, location.lon, 1.02)
+
+  useFrame((state) => {
+    // Animate rings
+    if (ring1Ref.current) {
+      const scale1 = 1 + Math.sin(state.clock.elapsedTime * 2) * 0.5
+      ring1Ref.current.scale.setScalar(scale1)
+      ring1Ref.current.material.opacity = 0.6 - (scale1 - 1) * 0.4
+    }
+    if (ring2Ref.current) {
+      const scale2 = 1 + Math.sin(state.clock.elapsedTime * 2 + Math.PI) * 0.5
+      ring2Ref.current.scale.setScalar(scale2)
+      ring2Ref.current.material.opacity = 0.6 - (scale2 - 1) * 0.4
     }
   })
 
   return (
-    <mesh
-      ref={markerRef}
-      position={position}
-      onClick={(e) => {
-        e.stopPropagation()
-        onClick(location)
-      }}
-      onPointerOver={() => document.body.style.cursor = 'pointer'}
-      onPointerOut={() => document.body.style.cursor = 'default'}
-    >
-      <sphereGeometry args={[0.025, 16, 16]} />
-      <meshStandardMaterial
-        color="#4a90d9"
-        emissive="#4a90d9"
-        emissiveIntensity={0.8}
-      />
-    </mesh>
+    <group position={position}>
+      {/* Center core - bright cyan dot */}
+      <mesh>
+        <sphereGeometry args={[0.015, 16, 16]} />
+        <meshBasicMaterial color="#60A5FA" />
+      </mesh>
+
+      {/* Inner glow */}
+      <mesh>
+        <sphereGeometry args={[0.025, 16, 16]} />
+        <meshBasicMaterial color="#3B82F6" transparent opacity={0.6} />
+      </mesh>
+
+      {/* Outer glow */}
+      <mesh>
+        <sphereGeometry args={[0.04, 16, 16]} />
+        <meshBasicMaterial color="#60A5FA" transparent opacity={0.3} />
+      </mesh>
+
+      {/* Animated ring 1 */}
+      <mesh ref={ring1Ref}>
+        <ringGeometry args={[0.035, 0.04, 32]} />
+        <meshBasicMaterial color="#60A5FA" transparent opacity={0.5} side={THREE.DoubleSide} />
+      </mesh>
+
+      {/* Animated ring 2 */}
+      <mesh ref={ring2Ref} rotation={[0, 0, Math.PI / 4]}>
+        <ringGeometry args={[0.045, 0.05, 32]} />
+        <meshBasicMaterial color="#93C5FD" transparent opacity={0.3} side={THREE.DoubleSide} />
+      </mesh>
+
+      {/* Click target - larger invisible hit area */}
+      <mesh
+        onClick={(e) => {
+          e.stopPropagation()
+          onClick(location)
+        }}
+        onPointerOver={() => document.body.style.cursor = 'pointer'}
+        onPointerOut={() => document.body.style.cursor = 'default'}
+      >
+        <sphereGeometry args={[0.08, 16, 16]} />
+        <meshBasicMaterial transparent opacity={0} />
+      </mesh>
+    </group>
   )
 }
 
@@ -109,16 +124,17 @@ export default function Globe({ locations, onLocationClick, autoRotate = true })
   return (
     <div className="globe-container h-full w-full">
       <Canvas camera={{ position: [0, 0, 2.5] }}>
-        <ambientLight intensity={0.4} color="#404060" />
-        <pointLight position={[5, 3, 5]} intensity={1.2} color="#ffffff" />
-        <Earth autoRotate={autoRotate} />
-        {locations.map((location) => (
-          <LocationMarker
-            key={location.id}
-            location={location}
-            onClick={onLocationClick}
-          />
-        ))}
+        <ambientLight intensity={0.5} />
+        <directionalLight position={[5, 3, 5]} intensity={1} />
+        <Earth autoRotate={autoRotate}>
+          {locations.map((location) => (
+            <LocationMarker
+              key={location.id}
+              location={location}
+              onClick={onLocationClick}
+            />
+          ))}
+        </Earth>
         <OrbitControls
           enableZoom={true}
           enablePan={false}

@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Special+Elite&family=Cooper+Black&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,11 +11,124 @@
 }
 
 body {
-  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Special Elite', 'Courier New', monospace;
+  background: linear-gradient(180deg, #0a0f1a 0%, #151d2e 40%, #2a3a4d 100%);
+  min-height: 100vh;
+  color: #f5f2e8;
   overflow-x: hidden;
 }
 
+/* Custom scrollbar - vintage style */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a2740;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4a5a6a;
+  border-radius: 5px;
+  border: 2px solid #1a2740;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6b7c8a;
+}
+
+/* Paper texture overlay */
+.paper-texture {
+  position: relative;
+}
+
+.paper-texture::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+/* Folder 3D tilt effect */
+.folder-3d {
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.folder-tilt {
+  transform: rotateY(-5deg) rotateX(2deg);
+  transition: transform 0.4s ease-out;
+}
+
+.folder-tilt:hover {
+  transform: rotateY(-2deg) rotateX(1deg);
+}
+
+/* Polaroid style */
+.polaroid {
+  background: #fafaf9;
+  padding: 12px 12px 40px 12px;
+  box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.3);
+  transform: rotate(-2deg);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.polaroid:hover {
+  transform: rotate(0deg) translateY(-5px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+}
+
+/* Sticky note */
+.sticky-note {
+  background: #fef3c7;
+  padding: 16px;
+  box-shadow: 2px 3px 8px rgba(0, 0, 0, 0.2);
+  transform: rotate(-1deg);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sticky-note:hover {
+  transform: rotate(0deg) translateY(-3px);
+  box-shadow: 4px 6px 15px rgba(0, 0, 0, 0.25);
+}
+
+/* Tape strip decoration */
+.tape-strip {
+  background: rgba(100, 100, 100, 0.4);
+  backdrop-filter: blur(2px);
+  height: 20px;
+  transform: rotate(-3deg);
+}
+
+/* Binder clip */
+.binder-clip {
+  background: linear-gradient(180deg, #4a4a4a 0%, #2a2a2a 100%);
+  border-radius: 3px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Glow effects */
+.glow-blue {
+  box-shadow: 0 0 20px rgba(74, 144, 217, 0.6), 0 0 40px rgba(74, 144, 217, 0.3);
+}
+
+.glow-warm {
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+}
+
+/* Animations */
 @keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes cassette-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
@@ -22,26 +137,13 @@ body {
   animation: spin 3s linear infinite;
 }
 
+.animate-cassette {
+  animation: cassette-spin 2s linear infinite;
+}
+
+/* Globe container */
 .globe-container canvas {
   border-radius: 1rem;
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #1e293b;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #475569;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
 }
 
 /* Mobile responsive */
@@ -53,4 +155,31 @@ body {
   header h1 {
     font-size: 1.5rem;
   }
+}
+
+/* Drag styles */
+.react-draggable {
+  cursor: grab;
+}
+
+.react-draggable:active {
+  cursor: grabbing;
+}
+
+.react-draggable-dragging {
+  z-index: 1000 !important;
+}
+
+/* Star sparkle 4-pointed */
+.sparkle-star {
+  width: 24px;
+  height: 24px;
+  background: radial-gradient(circle at center, rgba(74, 144, 217, 0.9) 0%, transparent 70%);
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0.5; transform: scale(1) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.2) rotate(15deg); }
 }
