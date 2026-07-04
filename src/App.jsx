@@ -101,52 +101,36 @@ function HomePage({ locations, loadLocations, globalCassette, setGlobalCassette,
   // Get cassette from global state
   const currentCassette = globalCassette
 
-  // Load cassette audio when selected
+  // When cassette changes, load the audio
   useEffect(() => {
-    if (!globalAudioRef.current) return
-    if (!currentCassette?.url) return
-    if (isEmbedCode(currentCassette)) return
+    if (!currentCassette?.url || isEmbedCode(currentCassette)) return
 
-    globalAudioRef.current.src = currentCassette.url
-    globalAudioRef.current.load()
-  }, [currentCassette, globalAudioRef])
-
-  // Sync playing state with audio - runs whenever playing state changes
-  useEffect(() => {
-    if (!globalAudioRef.current) return
-    if (!currentCassette?.url) return
-    if (isEmbedCode(currentCassette)) return
-
-    console.log('Sync audio: playing =', globalPlaying)
-
-    if (globalPlaying) {
-      globalAudioRef.current.play().catch(e => console.log('Play error:', e))
-    } else {
-      globalAudioRef.current.pause()
-    }
-  }, [globalPlaying, currentCassette, globalAudioRef])
-
-  // Keep audio playing - always ensure audio is playing when globalPlaying is true
-  useEffect(() => {
-    if (!globalAudioRef.current) return
-    if (!currentCassette?.url) return
-    if (isEmbedCode(currentCassette)) return
-
-    console.log('Checking audio: playing=', globalPlaying, 'paused=', globalAudioRef.current.paused, 'src=', globalAudioRef.current.src ? 'set' : 'none')
-
-    // Always ensure audio state matches globalPlaying
-    if (globalPlaying) {
-      if (globalAudioRef.current.paused) {
-        console.log('Starting playback')
-        globalAudioRef.current.play().catch(e => console.log('Play error:', e))
+    // Wait for ref to be ready
+    const timer = setTimeout(() => {
+      if (globalAudioRef.current) {
+        globalAudioRef.current.src = currentCassette.url
+        globalAudioRef.current.load()
       }
-    } else {
-      if (!globalAudioRef.current.paused) {
-        console.log('Pausing playback')
-        globalAudioRef.current.pause()
+    }, 100)
+
+    return () => clearTimeout(timer)
+  }, [currentCassette])
+
+  // When play state changes, control audio
+  useEffect(() => {
+    const audio = globalAudioRef.current
+    if (!audio || !currentCassette?.url || isEmbedCode(currentCassette)) return
+
+    const timer = setTimeout(() => {
+      if (globalPlaying) {
+        audio.play().catch(e => console.log('Play error:', e))
+      } else {
+        audio.pause()
       }
-    }
-  }, [globalPlaying, currentCassette, showBoombox])
+    }, 100)
+
+    return () => clearTimeout(timer)
+  }, [globalPlaying, currentCassette])
 
   // Extra protection: interval to keep audio playing
   useEffect(() => {
