@@ -192,6 +192,7 @@ export default function Admin({ onBack }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    console.log('Saving location...', { name, latValue, lonValue, photos, notes, cassettes })
 
     // 计算实际经纬度
     const latitude = latDirection === 'S' ? -Math.abs(parseFloat(latValue)) : Math.abs(parseFloat(latValue))
@@ -208,6 +209,8 @@ export default function Admin({ onBack }) {
       cassettes: cassettes.filter(c => c.url)
     }
 
+    console.log('Location data:', locationData)
+
     if (editingLocation) {
       saveLocations(
         locations.map((loc) =>
@@ -218,6 +221,7 @@ export default function Admin({ onBack }) {
       saveLocations([...locations, locationData])
     }
 
+    alert('保存成功！')
     resetForm()
   }
 
