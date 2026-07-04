@@ -27,39 +27,86 @@ const isEmbedCode = (cassette) => {
   )
 }
 
+// Get embed code
+const getEmbedCode = (cassette) => {
+  return cassette?.embedCode || cassette?.url || ''
+}
+
 // Simple mini player component
 function MiniPlayer({ cassette, isPlaying, onPlay, onPause, onOpenFull }) {
   const isEmbed = isEmbedCode(cassette)
+  const embedContainerRef = useRef(null)
 
-  // For embed codes, just show the button that toggles play state
-  // The actual embed is rendered in the full Boombox
+  // For embeds, render the iframe directly so user can control it
+  useEffect(() => {
+    if (!isEmbed || !embedContainerRef.current) return
+
+    const code = getEmbedCode(cassette)
+    if (code) {
+      // Add autoplay if playing
+      let embedCode = code
+      if (isPlaying && code.includes('iframe')) {
+        embedCode = code.replace(/src="([^"]*)"/, (match, src) => {
+          const separator = src.includes('?') ? '&' : '?'
+          return `src="${src}${separator}autoplay=1"`
+        })
+      }
+      embedContainerRef.current.innerHTML = embedCode
+    }
+  }, [cassette, isEmbed, isPlaying])
+
+  // For embed, show the actual player
+  if (isEmbed) {
+    return (
+      <div className="fixed bottom-8 left-8 z-40">
+        <div className="bg-gradient-to-b from-slate-700 to-slate-900 rounded-lg p-2 shadow-lifted border-2 border-slate-600">
+          <div className="flex items-center gap-2">
+            {/* Mini embed player */}
+            <div
+              ref={embedContainerRef}
+              className="w-48 h-14 overflow-hidden rounded"
+            />
+            {/* Title and controls */}
+            <div className="flex flex-col">
+              <span className="text-archive-cream text-xs font-typewriter truncate max-w-[80px]">
+                {cassette?.title || 'Music'}
+              </span>
+              <span className="text-archive-yellow text-[10px] font-typewriter">
+                {isPlaying ? '▶ Playing' : '○ Ready'}
+              </span>
+            </div>
+            {/* Open full player */}
+            <button
+              onClick={onOpenFull}
+              className="text-archive-cream/60 hover:text-archive-cream text-xl"
+            >
+              ☰
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // For regular audio files, show speakers and controls
   return (
     <div className="fixed bottom-8 left-8 z-40">
       <div className="bg-gradient-to-b from-slate-700 to-slate-900 rounded-lg p-3 shadow-lifted border-2 border-slate-600">
         <div className="flex gap-3 items-center">
-          {/* Speakers with animation - hide for embed, show for audio */}
-          {!isEmbed && (
-            <div className="flex gap-2">
-              <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center border-2 border-slate-600">
-                <div className={`w-6 h-6 rounded-full bg-slate-900 border border-slate-500 ${isPlaying ? 'animate-pulse' : ''}`} />
-              </div>
-              <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center border-2 border-slate-600">
-                <div className={`w-6 h-6 rounded-full bg-slate-900 border border-slate-500 ${isPlaying ? 'animate-pulse' : ''}`} />
-              </div>
-            </div>
-          )}
-
-          {/* For embed, show music icon */}
-          {isEmbed && (
+          {/* Speakers with animation */}
+          <div className="flex gap-2">
             <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center border-2 border-slate-600">
-              <span className="text-2xl">{isPlaying ? '🎵' : '🎶'}</span>
+              <div className={`w-6 h-6 rounded-full bg-slate-900 border border-slate-500 ${isPlaying ? 'animate-pulse' : ''}`} />
             </div>
-          )}
+            <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center border-2 border-slate-600">
+              <div className={`w-6 h-6 rounded-full bg-slate-900 border border-slate-500 ${isPlaying ? 'animate-pulse' : ''}`} />
+            </div>
+          </div>
 
           {/* Track info */}
           <div className="flex flex-col">
             <span className="text-archive-cream text-xs font-typewriter truncate max-w-[100px]">
-              {cassette?.title || (isEmbed ? '🎵' : 'Tape')}
+              {cassette?.title || 'Tape'}
             </span>
             <span className="text-archive-yellow text-[10px] font-typewriter">
               {isPlaying ? '▶ Playing' : '○ Ready'}
