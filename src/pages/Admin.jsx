@@ -192,7 +192,6 @@ export default function Admin({ onBack }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    console.log('Saving location...', { name, latValue, lonValue, photos, notes, cassettes })
 
     // 计算实际经纬度
     const latitude = latDirection === 'S' ? -Math.abs(parseFloat(latValue)) : Math.abs(parseFloat(latValue))
@@ -209,8 +208,6 @@ export default function Admin({ onBack }) {
       cassettes: cassettes.filter(c => c.url)
     }
 
-    console.log('Location data:', locationData)
-
     if (editingLocation) {
       saveLocations(
         locations.map((loc) =>
@@ -221,7 +218,6 @@ export default function Admin({ onBack }) {
       saveLocations([...locations, locationData])
     }
 
-    alert('保存成功！')
     resetForm()
   }
 
@@ -368,19 +364,23 @@ export default function Admin({ onBack }) {
             <div className="mb-4">
               <div className="flex justify-between items-center mb-2">
                 <label className="text-white text-sm">照片</label>
-                <label className="text-purple-400 text-sm cursor-pointer">
+                <button type="button" onClick={() => {
+                  const input = document.createElement('input')
+                  input.type = 'file'
+                  input.accept = 'image/*'
+                  input.onchange = (e) => {
+                    const file = e.target.files[0]
+                    if (!file) return
+                    const reader = new FileReader()
+                    reader.onloadend = () => {
+                      setPhotos(prev => [...prev, { url: reader.result, type: 'print', rotation: Math.random() * 20 - 10 }])
+                    }
+                    reader.readAsDataURL(file)
+                  }
+                  input.click()
+                }} className="text-purple-400 text-sm">
                   + 添加照片
-                  <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => {
-                    const files = Array.from(e.target.files)
-                    files.forEach(file => {
-                      const reader = new FileReader()
-                      reader.onloadend = () => {
-                        setPhotos(prev => [...prev, { url: reader.result, type: 'print', rotation: Math.random() * 20 - 10 }])
-                      }
-                      reader.readAsDataURL(file)
-                    })
-                  }} />
-                </label>
+                </button>
               </div>
               <div className="grid grid-cols-4 gap-2">
                 {photos.map((photo, index) => (
