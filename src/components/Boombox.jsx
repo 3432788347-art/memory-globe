@@ -48,29 +48,6 @@ export default function Boombox({
   // Check if current cassette is an embed
   const isEmbed = isEmbedCode(currentCassette)
 
-  // Handle embed autoplay when isPlaying changes
-  useEffect(() => {
-    if (!isEmbed || !embedContainerRef.current) return
-
-    const iframe = embedContainerRef.current.querySelector('iframe')
-    if (!iframe) return
-
-    if (isPlaying) {
-      // Add autoplay to iframe src
-      const src = iframe.src || iframe.getAttribute('src')
-      if (src && !src.includes('autoplay')) {
-        const separator = src.includes('?') ? '&' : '?'
-        iframe.src = src + separator + 'autoplay=1'
-      }
-    } else {
-      // Remove autoplay and pause by reloading without autoplay
-      const src = iframe.src || iframe.getAttribute('src')
-      if (src) {
-        iframe.src = src.replace(/[?&]autoplay=1/, '')
-      }
-    }
-  }, [isPlaying, isEmbed])
-
   // Toggle play/pause - just call the parent's handlers
   const togglePlay = () => {
     if (isPlaying) {
@@ -178,7 +155,7 @@ export default function Boombox({
                 <div
                   ref={embedContainerRef}
                   className="w-full flex justify-center"
-                  dangerouslySetInnerHTML={{ __html: getEmbedCodeWithAutoplay(currentCassette, isPlaying) }}
+                  dangerouslySetInnerHTML={{ __html: getEmbedCode(currentCassette) }}
                 />
               </div>
             </div>

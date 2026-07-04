@@ -43,17 +43,10 @@ function MiniPlayer({ cassette, isPlaying, onPlay, onPause, onOpenFull }) {
 
     const code = getEmbedCode(cassette)
     if (code) {
-      // Add autoplay if playing
-      let embedCode = code
-      if (isPlaying && code.includes('iframe')) {
-        embedCode = code.replace(/src="([^"]*)"/, (match, src) => {
-          const separator = src.includes('?') ? '&' : '?'
-          return `src="${src}${separator}autoplay=1"`
-        })
-      }
-      embedContainerRef.current.innerHTML = embedCode
+      // Just render the embed as-is, user can click play inside it
+      embedContainerRef.current.innerHTML = code
     }
-  }, [cassette, isEmbed, isPlaying])
+  }, [cassette, isEmbed])
 
   // For embed, show the actual player
   if (isEmbed) {
