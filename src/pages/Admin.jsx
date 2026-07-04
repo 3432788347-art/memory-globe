@@ -421,24 +421,38 @@ export default function Admin({ onBack }) {
             {/* 照片 */}
             <div className="mb-4">
               <div className="flex justify-between items-center mb-2">
-                <label className="text-white text-sm">照片</label>
-                <label className="text-purple-400 text-sm cursor-pointer">
-                  + 添加照片
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={async (e) => {
-                      const file = e.target.files[0]
-                      if (!file) return
-                      // 压缩图片
-                      const compressedUrl = await compressImage(file)
-                      setPhotos(prev => [...prev, { url: compressedUrl, type: 'print', rotation: Math.random() * 20 - 10 }])
-                      // 清空input值，允许重复选择同一文件
-                      e.target.value = ''
+                <label className="text-white text-sm">照片（上传或粘贴URL）</label>
+                <div className="flex gap-2">
+                  <label className="text-purple-400 text-sm cursor-pointer">
+                    上传
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files[0]
+                        if (!file) return
+                        // 压缩图片
+                        const compressedUrl = await compressImage(file)
+                        setPhotos(prev => [...prev, { url: compressedUrl, type: 'print', rotation: Math.random() * 20 - 10 }])
+                        // 清空input值，允许重复选择同一文件
+                        e.target.value = ''
+                      }}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const url = prompt('粘贴图片URL:')
+                      if (url) {
+                        setPhotos(prev => [...prev, { url, type: 'print', rotation: Math.random() * 20 - 10 }])
+                      }
                     }}
-                  />
-                </label>
+                    className="text-green-400 text-sm"
+                  >
+                    + URL
+                  </button>
+                </div>
               </div>
               <div className="grid grid-cols-4 gap-2">
                 {photos.map((photo, index) => (
