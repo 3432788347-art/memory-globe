@@ -15,19 +15,22 @@ function latLonToVector3(lat, lon, radius) {
 function Earth({ autoRotate }) {
   const earthRef = useRef()
   const [texture, setTexture] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const loader = new THREE.TextureLoader()
+    // 使用 jsdelivr CDN 更稳定
     loader.load(
-      'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg',
+      'https://cdn.jsdelivr.net/npm/three-globe@example/img/earth-blue-marble.jpg',
       (loadedTexture) => {
-        // Adjust texture colors to silver/gray
         loadedTexture.colorSpace = THREE.SRGBColorSpace
         setTexture(loadedTexture)
+        setLoading(false)
       },
       undefined,
-      (error) => {
-        console.error('Error loading texture:', error)
+      () => {
+        // 如果 CDN 失败，使用备用方案
+        setLoading(false)
       }
     )
   }, [])
@@ -40,14 +43,21 @@ function Earth({ autoRotate }) {
 
   return (
     <group ref={earthRef}>
-      {/* Main Earth sphere with texture */}
       <Sphere args={[1, 64, 64]}>
-        <meshStandardMaterial
-          map={texture}
-          color="#b8c4ce"
-          metalness={0.1}
-          roughness={0.8}
-        />
+        {loading ? (
+          <meshStandardMaterial
+            color="#b8c4ce"
+            metalness={0.2}
+            roughness={0.7}
+          />
+        ) : (
+          <meshStandardMaterial
+            map={texture}
+            color="#b8c4ce"
+            metalness={0.1}
+            roughness={0.8}
+          />
+        )}
       </Sphere>
 
       {/* Atmosphere glow */}
