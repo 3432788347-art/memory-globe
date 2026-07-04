@@ -82,7 +82,7 @@ export default function Admin({ onBack }) {
   }
 
   // 图片压缩函数 - 限制最大尺寸和质量
-  const compressImage = (file, maxWidth = 1200, quality = 0.7) => {
+  const compressImage = (file, maxWidth = 800, quality = 0.5) => {
     return new Promise((resolve) => {
       const reader = new FileReader()
       reader.onload = (e) => {
