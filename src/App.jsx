@@ -324,7 +324,8 @@ function HomePage({ locations, loadLocations, globalCassette, setGlobalCassette,
         )}
 
         {/* Mini player - always show when cassette is selected and boombox is closed */}
-        {currentCassette && !showBoombox && !folderOpen && (
+        {/* Mini player - always show when cassette is selected */}
+        {currentCassette && !showBoombox && (
           <MiniPlayer
             cassette={currentCassette}
             isPlaying={globalPlaying}
