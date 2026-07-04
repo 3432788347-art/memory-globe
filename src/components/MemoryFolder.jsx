@@ -110,14 +110,14 @@ export default function MemoryFolder({ location, onClose, isOpen, onToggleOpen, 
     const photos = (location?.photos || []).map((p, i) => ({ ...p, type: 'polaroid', id: `photo-${i}` }))
     const notes = (location?.notes || []).map((n, i) => ({ ...n, type: 'sticky', id: `note-${i}` }))
     const tapes = (location?.cassettes || []).map((c, i) => ({ ...c, type: 'tape', id: `tape-${i}` }))
-    return [...photos, ...notes, ...tapes]
+    return { photos, notesAndTapes: [...notes, ...tapes] }
   })
 
   useEffect(() => {
     const photos = (location?.photos || []).map((p, i) => ({ ...p, type: 'polaroid', id: `photo-${i}` }))
     const notes = (location?.notes || []).map((n, i) => ({ ...n, type: 'sticky', id: `note-${i}` }))
     const tapes = (location?.cassettes || []).map((c, i) => ({ ...c, type: 'tape', id: `tape-${i}` }))
-    setItems([...photos, ...notes, ...tapes])
+    setItems({ photos, notesAndTapes: [...notes, ...tapes] })
     setZIndexCounter(10)
   }, [location])
 
@@ -177,42 +177,48 @@ export default function MemoryFolder({ location, onClose, isOpen, onToggleOpen, 
                 {/* Content - Two page layout */}
                 <div className="p-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Left page - Photo - glass effect */}
-                    <div className="bg-white/[0.05] backdrop-blur-sm p-4 rounded-lg border border-white/[0.1] min-h-[300px]">
-                      <h4 className="font-typewriter text-archive-cream/70 text-sm tracking-wide mb-4">◉ PHOTO</h4>
-                      <div className="flex justify-center">
-                        {(location?.photos || []).length > 0 ? (
-                          <div className="polaroid cursor-pointer" onClick={() => setSelectedItem(location.photos[0])}>
-                            <img src={location.photos[0].url} alt="" className="w-48 h-40 object-cover" />
-                            {location.photos[0].caption && (
-                              <p className="font-handwritten text-gray-600 text-sm mt-3 text-center">{location.photos[0].caption}</p>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="polaroid opacity-50">
-                            <div className="w-48 h-40 bg-gray-300/50 flex items-center justify-center backdrop-blur-sm">
-                              <span className="text-gray-500">No Photo</span>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Right page - Notes board - glass effect */}
+                    {/* Left page - Notes - glass effect */}
                     <div className="bg-white/[0.05] backdrop-blur-sm p-4 rounded-lg border border-white/[0.1] min-h-[300px]">
                       <h4 className="font-typewriter text-archive-cream/70 text-sm tracking-wide mb-4">▤ NOTES</h4>
 
-                      {/* Draggable board */}
+                      {/* Draggable notes board */}
                       <div
                         className="relative h-64 bg-gradient-to-br from-white/[0.1] to-white/[0.05] rounded border border-white/[0.15] overflow-hidden backdrop-blur-sm"
                         style={{ minHeight: '250px' }}
                       >
-                        {items.length === 0 ? (
+                        {items.notesAndTapes.length === 0 ? (
                           <div className="absolute inset-0 flex items-center justify-center text-archive-cream/40">
-                            <span className="font-typewriter">Click items to interact • Drag to move</span>
+                            <span className="font-typewriter">No Notes</span>
                           </div>
                         ) : (
-                          items.map((item, index) => (
+                          items.notesAndTapes.map((item, index) => (
+                            <DraggableItem
+                              key={item.id}
+                              item={item}
+                              onSelect={handleItemSelect}
+                              zIndex={index + 1}
+                              onBringToFront={bringToFront}
+                            />
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Right page - Photos - glass effect */}
+                    <div className="bg-white/[0.05] backdrop-blur-sm p-4 rounded-lg border border-white/[0.1] min-h-[300px]">
+                      <h4 className="font-typewriter text-archive-cream/70 text-sm tracking-wide mb-4">◉ PHOTOS</h4>
+
+                      {/* Draggable photos board */}
+                      <div
+                        className="relative h-64 bg-gradient-to-br from-white/[0.1] to-white/[0.05] rounded border border-white/[0.15] overflow-hidden backdrop-blur-sm"
+                        style={{ minHeight: '250px' }}
+                      >
+                        {items.photos.length === 0 ? (
+                          <div className="absolute inset-0 flex items-center justify-center text-archive-cream/40">
+                            <span className="font-typewriter">No Photos</span>
+                          </div>
+                        ) : (
+                          items.photos.map((item, index) => (
                             <DraggableItem
                               key={item.id}
                               item={item}
