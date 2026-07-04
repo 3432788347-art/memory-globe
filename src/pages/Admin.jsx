@@ -81,24 +81,53 @@ export default function Admin({ onBack }) {
     }
   }
 
-  // 处理照片上传 - 支持添加新照片和更新现有照片
-  const handlePhotoUpload = (e, index = null) => {
-    const file = e.target.files[0]
-    if (file) {
+  // 图片压缩函数 - 限制最大尺寸和质量
+  const compressImage = (file, maxWidth = 1200, quality = 0.7) => {
+    return new Promise((resolve) => {
       const reader = new FileReader()
-      reader.onloadend = () => {
-        const newPhoto = { url: reader.result, type: 'print', rotation: Math.random() * 20 - 10 }
-        if (index !== null) {
-          // 更新现有照片
-          const newPhotos = [...photos]
-          newPhotos[index] = newPhoto
-          setPhotos(newPhotos)
-        } else {
-          // 添加新照片
-          setPhotos([...photos, newPhoto])
+      reader.onload = (e) => {
+        const img = new Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          let { width, height } = img
+
+          // 缩放图片
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width
+            width = maxWidth
+          }
+
+          canvas.width = width
+          canvas.height = height
+
+          const ctx = canvas.getContext('2d')
+          ctx.drawImage(img, 0, 0, width, height)
+
+          // 压缩为 JPEG
+          resolve(canvas.toDataURL('image/jpeg', quality))
         }
+        img.src = e.target.result
       }
       reader.readAsDataURL(file)
+    })
+  }
+
+  // 处理照片上传 - 支持添加新照片和更新现有照片
+  const handlePhotoUpload = async (e, index = null) => {
+    const file = e.target.files[0]
+    if (file) {
+      // 先压缩图片再保存
+      const compressedUrl = await compressImage(file)
+      const newPhoto = { url: compressedUrl, type: 'print', rotation: Math.random() * 20 - 10 }
+      if (index !== null) {
+        // 更新现有照片
+        const newPhotos = [...photos]
+        newPhotos[index] = newPhoto
+        setPhotos(newPhotos)
+      } else {
+        // 添加新照片
+        setPhotos([...photos, newPhoto])
+      }
     }
   }
 
@@ -195,32 +224,59 @@ export default function Admin({ onBack }) {
       e.preventDefault()
     }
 
+    // 验证必填字段
+    if (!name.trim()) {
+      alert('请填写地点名称')
+      return
+    }
+    if (!latValue || isNaN(parseFloat(latValue))) {
+      alert('请填写有效纬度')
+      return
+    }
+    if (!lonValue || isNaN(parseFloat(lonValue))) {
+      alert('请填写有效经度')
+      return
+    }
+
     // 计算实际经纬度
     const latitude = latDirection === 'S' ? -Math.abs(parseFloat(latValue)) : Math.abs(parseFloat(latValue))
     const longitude = lonDirection === 'W' ? -Math.abs(parseFloat(lonValue)) : Math.abs(parseFloat(lonValue))
+
+    // 过滤有效的照片
+    const validPhotos = photos.filter(p => p.url)
+
+    // 检查照片总大小 (localStorage 限制约5MB)
+    const photosSize = new Blob([JSON.stringify(validPhotos)]).size
+    if (photosSize > 4000000) {
+      alert('照片总大小超出限制（约4MB），请减少照片数量或使用更小的图片')
+      return
+    }
 
     const locationData = {
       id: editingLocation?.id || Date.now(),
       name: name,
       lat: latitude,
       lon: longitude,
-      photos: photos.filter(p => p.url),
+      photos: validPhotos,
       notes: notes.filter(n => n.text),
       // Save all cassettes that have a url (music file or embed code)
       cassettes: cassettes.filter(c => c.url)
     }
 
-    if (editingLocation) {
-      saveLocations(
-        locations.map((loc) =>
-          loc.id === editingLocation.id ? locationData : loc
+    try {
+      if (editingLocation) {
+        saveLocations(
+          locations.map((loc) =>
+            loc.id === editingLocation.id ? locationData : loc
+          )
         )
-      )
-    } else {
-      saveLocations([...locations, locationData])
+      } else {
+        saveLocations([...locations, locationData])
+      }
+      resetForm()
+    } catch (error) {
+      alert('保存失败: ' + error.message)
     }
-
-    resetForm()
   }
 
   const resetForm = () => {
@@ -372,14 +428,14 @@ export default function Admin({ onBack }) {
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={(e) => {
+                    onChange={async (e) => {
                       const file = e.target.files[0]
                       if (!file) return
-                      const reader = new FileReader()
-                      reader.onload = () => {
-                        setPhotos(prev => [...prev, { url: reader.result, type: 'print', rotation: Math.random() * 20 - 10 }])
-                      }
-                      reader.readAsDataURL(file)
+                      // 压缩图片
+                      const compressedUrl = await compressImage(file)
+                      setPhotos(prev => [...prev, { url: compressedUrl, type: 'print', rotation: Math.random() * 20 - 10 }])
+                      // 清空input值，允许重复选择同一文件
+                      e.target.value = ''
                     }}
                   />
                 </label>
