@@ -364,23 +364,23 @@ export default function Admin({ onBack }) {
             <div className="mb-4">
               <div className="flex justify-between items-center mb-2">
                 <label className="text-white text-sm">照片</label>
-                <button type="button" onClick={() => {
-                  const input = document.createElement('input')
-                  input.type = 'file'
-                  input.accept = 'image/*'
-                  input.onchange = (e) => {
-                    const file = e.target.files[0]
-                    if (!file) return
-                    const reader = new FileReader()
-                    reader.onloadend = () => {
-                      setPhotos(prev => [...prev, { url: reader.result, type: 'print', rotation: Math.random() * 20 - 10 }])
-                    }
-                    reader.readAsDataURL(file)
-                  }
-                  input.click()
-                }} className="text-purple-400 text-sm">
+                <label className="text-purple-400 text-sm cursor-pointer">
                   + 添加照片
-                </button>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files[0]
+                      if (!file) return
+                      const reader = new FileReader()
+                      reader.onload = () => {
+                        setPhotos(prev => [...prev, { url: reader.result, type: 'print', rotation: Math.random() * 20 - 10 }])
+                      }
+                      reader.readAsDataURL(file)
+                    }}
+                  />
+                </label>
               </div>
               <div className="grid grid-cols-4 gap-2">
                 {photos.map((photo, index) => (
