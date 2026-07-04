@@ -371,7 +371,7 @@ export default function Admin({ onBack }) {
                     files.forEach(file => {
                       const reader = new FileReader()
                       reader.onloadend = () => {
-                        setPhotos([...photos, { url: reader.result, type: 'print', rotation: Math.random() * 20 - 10 }])
+                        setPhotos(prev => [...prev, { url: reader.result, type: 'print', rotation: Math.random() * 20 - 10 }])
                       }
                       reader.readAsDataURL(file)
                     })
